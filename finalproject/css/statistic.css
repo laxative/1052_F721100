@@ -1,0 +1,39 @@
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  shape-rendering: crispEdges;
+}
+
+.x.axis line{
+	stroke: #000;
+}
+
+
+.y.axis line {
+  stroke: #777;
+  stroke-opacity: .8;
+}
+
+.x.axis path {
+  display: none;
+  stroke: black;
+}
+
+.bar{
+	fill: #232323;
+}
+
+.toolTip{
+	position: absolute;
+	line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+

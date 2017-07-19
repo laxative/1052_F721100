@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>地震分析</title>
+	<script type="text/javascript" src="./libs/d3.min.js"></script>
+	<script type="text/javascript" src="./libs/topojson.min.js"></script>
+	<!--
+	<script type="text/javascript" src="./libs/datamaps.world.min.js"></script>
+	-->
+	<link rel="stylesheet" type="text/css" href="./css/index.css">
+	<link rel="stylesheet" type="text/css" href="./css/statistic.css">
+	<link rel="stylesheet" type="text/css" href="./css/moonphase.css">
+	<link rel="stylesheet" type="text/css" href="./css/houseNumber.css">
+</head>
+<body>	
+	<nav class="menu">
+		<ul class="selection">
+			<li onclick="reset(0)">地圖</li>
+			<li onclick="reset(1)">地震量統計圖</li>
+			<li onclick="reset(2)">月相</li>
+			<li onclick="reset(3)">House Number</li>
+		</ul>
+	</nav>
+	<article class="article">
+		<header class="title">
+			<h1>地震分析</h1>
+		</header>
+		<section class="article_top">
+			<ul id="article_menu">
+				<!-- li use js function to create -->
+			</ul>
+		</section>
+		<section class="article_bot">
+			<div id="screen"></div>
+		</section>
+	</article>
+	<embed src="./bgm/bgm.mp3" autostart="true" hidden="true" loop="true">
+	<div class="toolTip"></div>
+	<script type="text/javascript" src="./js/map.js"></script>
+	<script type="text/javascript" src="./js/statistic.js"></script>
+	<script type="text/javascript" src="./js/moonphase.js"></script>
+	<script type="text/javascript" src="./js/houseNumber.js"></script>
+	<script type="text/javascript" src="./js/index.js"></script>
+	<script type="text/javascript">
+		reset(0);
+	</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>treenode</title>
+	<script type="text/javascript" src="../libs/d3.min.js"></script>
+	<meta charset="utf-8">
+	<style type="text/css">
+		*{box-sizing: border-box;}
+		html,body{
+			height: 100%;
+			width: 100%;
+		}
+		body{
+			margin: 0 auto;
+			overflow: hidden;
+		}
+		svg{
+			display: inline-block;
+			padding: 5%;
+		}
+		.input{
+			height: 10%;
+			width: 100%;
+		}
+		.toolTip{
+      position: absolute;
+      font: 12px sans-serif;
+      text-align: center;
+      background: none repeat scroll 0 0 white;
+      border-radius: 8px;
+      box-shadow: -3px 3px 15px #888;
+      padding: 5px;
+    }
+	</style>
+</head>
+<body>
+	<div class="input">
+		level: <input type="text" name="level" value=""><br>
+		children: <input type="text" name="children" value="">
+		<button onclick="draw()">Enter</button>
+	</div>
+	<svg width="100%" height="85%"></svg>
+	<script type="text/javascript">
+		function draw() {
+			var svg = d3.select('svg');
+			//clean element
+			d3.selectAll('.toolTip').remove();
+			svg.selectAll("*").remove();
+			//start
+			var levelNum = document.getElementsByName('level')[0].value;
+			var childrenNum = document.getElementsByName('children')[0].value;
+			if(levelNum == "" || childrenNum == "") {
+				window.alert("input something plz~");
+			}else{
+				//tooltip
+				var divTooltip = d3.select("body").append("div").attr("class", "toolTip");
+				//for debug
+				console.log(levelNum);
+				console.log(childrenNum);
+				//dynamic create data array(json)
+				
+				//first create array to store data
+				var data = [{"level": 1, "id": 1, "parentID": -1}];
+				var count = 2;
+				for (var i = 2; i <= levelNum; i++) {
+					for(var j = 0; j < Math.pow(childrenNum,(i-1)); j++) {
+						//id,level,parentid
+						data.push({"level": i, "id": count, "parentID": Math.floor((count+parseInt(childrenNum)-2)/parseInt(childrenNum))});
+						count++;
+					}
+				}
+				console.log(data);
+				//second transfer array data to tree(json)
+				function createTree(data) {
+					var childrenById = {};
+					var nodes = {};
+					var row;
+					//divide into array(put nodes together that have same parent)
+					for (var i = 0; i < data.length; i++) {
+						row = data[i];
+						nodes[row.id] = {"level": row.level, "id": row.id, "children": []};
+						if(row.parentID == -1) {//-1 is used to mark the root's parent
+							root = row.id;
+						} else if(childrenById[row.parentID] === undefined) {
+							//if not set yet, just help it set the array
+							childrenById[row.parentID] = [row.id];
+						} else {
+							//push into array
+							childrenById[row.parentID].push(row.id);
+						}
+					}
+					//recursion append treenode
+					function expand(id) {
+       			if (childrenById[id] !== undefined) { //undefined means not data
+           	for (var i=0; i < childrenById[id].length; i++) {
+               var childId = childrenById[id][i];
+               nodes[id].children.push(expand(childId));
+           		}
+       			}
+       			return nodes[id];
+   				}
+   				return expand(root);
+				}
+				data = createTree(data);
+				console.log(data);
+
+				//draw tree
+				
+
+				//define size of tree function
+				var tree = d3.layout.tree().size([
+					parseInt(svg.style('height').replace('px', '')) -
+						parseInt(svg.style('padding-top').replace('px','')),
+					parseInt(svg.style('width').replace('px','')) -
+						parseInt(svg.style('padding-left').replace('px','')) -
+							parseInt(svg.style('padding-right').replace('px',''))
+				]);
+				//transfer data to tree type
+				var treeNodes = tree(data);
+				//create treelink(source,target)
+				var treeLinks = tree.links(treeNodes);
+				
+				//diagonal is used to draw curve line
+				//it needs source,target,projection
+				//because source and target the treelink already have
+				//it needn't be defined here
+
+				//source <= from
+				//target <= to
+				//projection:
+				/*
+				function projection(d) {
+ 					var r = d.y, a = (d.x - 90) / 180 * Math.PI;
+  				return [r * Math.cos(a), r * Math.sin(a)];
+				}
+				*/
+				var diagonal = d3.svg.diagonal()
+        	.projection(function(d) { return [d.y, d.x]; });
+
+
+        svg.selectAll('path')
+					.data(treeLinks).enter().append('path')
+					.attr({
+						d: diagonal,
+						fill: 'none',
+						stroke: '#000',
+						'stroke-width': '3'
+					});
+
+
+				d3.select('svg').selectAll('circle')
+					.data(treeNodes).enter().append('circle')
+					.attr({
+						r: 10,
+						cx: function(d) {return d.y},
+						cy: function(d) {return d.x},
+						fill: 'white',
+						stroke: 'blue',
+						'stroke-width': '3'
+					})
+					.on("mousemove", function(d){
+          divTooltip.style("left", d3.event.pageX-40+"px");
+          divTooltip.style("top", d3.event.pageY-50+"px");
+          divTooltip.style("display", "inline-block");
+          var x = d3.event.pageX, y = d3.event.pageY;
+          var elements = document.querySelectorAll(':hover');
+          l = elements.length;
+          l = l-1;
+          elementData = elements[l].__data__;
+          divTooltip.html("ID: "+elementData.id);
+        }).on("mouseout", function() {
+          divTooltip.style("display", "none");
+        });;
+
+        d3.select('svg').selectAll('text')
+        	.data(treeNodes).enter().append('text')
+        	.attr({
+        		x: function(d) {return d.y - 30},
+        		y: function(d) {return d.x}
+        	}).style({
+        		"fill": "black",
+        		"font-size": "15px"
+        	}).text(function(d) {return "Level: " + d.level});
+
+				console.log(treeLinks);
+			}
+		}
+	</script>
+</body>
+</html>

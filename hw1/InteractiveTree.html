@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8">
+  <title>Tree Example</title>
+  <style>
+  	body{
+  		overflow: hidden;
+  	}
+		.node {
+			cursor: pointer;
+		}
+
+		.node circle {
+		  fill: #fff;
+		  stroke: steelblue;
+		  stroke-width: 3px;
+		}
+
+		.node text {
+		  font: 12px sans-serif;
+		}
+
+		.link {
+		  fill: none;
+		  stroke: #ccc;
+		  stroke-width: 2px;
+		}
+	
+ 	</style>
+</head>
+<body>
+<h2>TreeGenerator</h2>
+Level:  <input type="text" name="level" value=""><br>
+Child:  <input type="text" name="child" value="">
+<button type="button" onclick="draw()">Enter</button>
+
+<!-- load the d3.js library -->	
+<script src="../libs/d3.min.js"></script>
+	
+<script>
+
+function draw() {
+	var level = document.getElementsByName('level')[0].value;
+	var child = document.getElementsByName('child')[0].value;
+	//87 goes away
+	if(level === "" || child === "") {
+		window.alert("WTF? Input something please");
+	}else if(level%1 !== 0 || child%1 !== 0) {
+		window.alert("Are you sure you input integers?");
+	}else if(level < 1 || child < 0) {
+		window.alert("Level >= 1 && children > 0");
+	}else{
+		//generate data
+		function generate(cur_level,final_level,child) {
+			var nodes = new Object();
+			nodes.name = "level: " + cur_level;
+			if(cur_level != final_level) {
+				nodes.children = new Array();
+				for(var i=0; i<child; ++i) {
+					nodes.children[i] = generate(cur_level+1,final_level,child);
+					nodes.children[i].parent = nodes.name;
+				}
+			}
+			return nodes;
+		}
+
+		var treeData = new Array();
+		treeData[0] = generate(1,level,child);
+		treeData[0].parent = null;
+		// ************** Generate the tree diagram	 *****************
+
+		//delete member
+		d3.select('svg').remove();
+		//start
+		//define margin
+		var margin = {top: 20, right: 120, bottom: 20, left: 120},
+			width = 960 - margin.right - margin.left,
+			height = 450 - margin.top - margin.bottom;
+			
+		//define parameter
+		var i = 0,
+			duration = 750,
+			root;
+
+		//define size of tree function
+		var tree = d3.layout.tree()
+			.size([height, width]);
+
+		//define diagonal
+		//diagonal is used to draw curve line
+		//it needs source,target,projection
+		//because source and target the treelink already have
+		//it needn't be defined here
+
+		//source - from
+		//target - to
+		//projection:
+		/*
+		function projection(d) {
+ 			var r = d.y, a = (d.x - 90) / 180 * Math.PI;
+  		return [r * Math.cos(a), r * Math.sin(a)];
+		}
+		*/
+		var diagonal = d3.svg.diagonal()
+			.projection(function(d) { return [d.y, d.x]; });
+
+		var svg = d3.select("body").append("svg")
+			.attr("width", width + margin.right + margin.left)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		//define root
+		root = treeData[0];
+		root.x0 = height / 2;
+		root.y0 = 0;
+		  
+		update(root);
+
+		//self means this
+		//self.frameElement equals to this.Element
+		d3.select(self.frameElement).style("height", "450px");
+
+		function update(source) {
+
+		  // Compute the new tree layout.
+		  // Creates a new tree layout
+		  /*
+		  parent - the parent node, or null for the root.
+			children - the array of child nodes, or null for leaf nodes.
+			depth - the depth of the node, starting at 0 for the root.
+			x - the computed x-coordinate of the node position.
+			y - the computed y-coordinate of the node position.
+		  */
+		  var nodes = tree.nodes(root),
+		  //Given the specified array of nodes
+		  /*
+		  source - the parent node (as described above).
+			target - the child node.
+		  */
+			  links = tree.links(nodes);
+
+		  // Update the nodes…
+		  // binding data
+		  var node = svg.selectAll("g.node")
+			  .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+		  // Enter any new nodes at the parent's previous position.
+		  var nodeEnter = node.enter().append("g")
+			  .attr("class", "node")
+			  //go back to precious status
+			  .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+			  .on("click", click);
+
+		  nodeEnter.append("circle")
+			  .attr("r", 1e-6)
+			  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+		  nodeEnter.append("text")
+			  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+			  .attr("dy", ".35em")
+			  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+			  .text(function(d) { return d.name; })
+			  .style("fill-opacity", 1e-6);
+
+		  // Transition nodes to their new position.
+		  var nodeUpdate = node.transition()
+			  .duration(duration)
+			  .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+		  nodeUpdate.select("circle")
+			  .attr("r", 10)
+			  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+		  nodeUpdate.select("text")
+			  .style("fill-opacity", 1);
+
+		  // Transition exiting nodes to the parent's new position.
+		  var nodeExit = node.exit().transition()
+			  .duration(duration)
+			  // make node transform to it parent's position and delete it
+			  .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+			  .remove();
+
+			//circle will get gradually smaller during exit and finally be deleted
+		  nodeExit.select("circle")
+			  .attr("r", 1e-6);
+
+			//text will get gradually transparent during exit and finally be deleted
+		  nodeExit.select("text")
+			  .style("fill-opacity", 1e-6);
+
+		  // Update the links…
+		  var link = svg.selectAll("path.link")
+			  .data(links, function(d) { return d.target.id; });
+
+		  // Enter any new links at the parent's previous position.
+		  link.enter().insert("path", "g")
+		  	//use .insert() to make sure path is under circle and text
+			  .attr("class", "link")
+			  .attr("d", function(d) {
+			  // go back to precious status
+				var o = {x: source.x0, y: source.y0};
+				return diagonal({source: o, target: o});
+			  });
+
+		  // Transition links to their new position.
+		  link.transition()
+			  .duration(duration)
+			  .attr("d", diagonal);
+
+		  // Transition exiting nodes to the parent's new position.
+		  link.exit().transition()
+			  .duration(duration)
+			  .attr("d", function(d) {
+				var o = {x: source.x, y: source.y};
+				return diagonal({source: o, target: o});
+			  })
+			  .remove();
+
+		  // Stash the old positions for transition.
+		  nodes.forEach(function(d) {
+			d.x0 = d.x;
+			d.y0 = d.y;
+		  });
+		}
+
+		// Toggle children on click.
+		// use _children to save precious status
+		// use children to save current status
+		function click(d) {
+		  if (d.children) {
+			d._children = d.children;
+			d.children = null;
+		  } else {
+			d.children = d._children;
+			d._children = null;
+		  }
+		  //change data and remember to update
+		  update(d);
+		}
+	}
+}
+
+
+</script>
+	
+  </body>
+</html>
