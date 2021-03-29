@@ -1,3 +1,6 @@
+const SolarSystemAndEarthquakesData = require('../data/SolarSystemAndEarthquakes.csv')
+
+
 function moonphase() {
 
     // clean li data and object
@@ -5,12 +8,11 @@ function moonphase() {
     article_menu.innerHTML = "";
 
     //data
-    d3.csv("../data/SolarSystemAndEarthquakes.csv", (data) => {
+    // d3.csv(SolarSystemAndEarthquakesData, (data) => {
     	//console.log(data[0]);
   		var margin = {top: 40, right: 20, bottom: 30, left: 30};
 
-      var final_Width = Math.min(document.getElementById('screen').offsetWidth
-      ,(document.getElementById('screen').offsetHeight)*2);
+      var final_Width = 1490;
 
   		var statistics_svg_width = final_Width - margin.left - margin.right, 
   				statistics_svg_height = (final_Width/2) - margin.top - margin.bottom;
@@ -38,7 +40,7 @@ function moonphase() {
           "data": []
         });
       }
-      data.forEach(item => {
+      SolarSystemAndEarthquakesData.forEach(item => {
 
         var year = parseInt(item.date.substring(6,10));
         item.moonPhaseGroup = function(d) {
@@ -358,6 +360,8 @@ function moonphase() {
       
       showAllData();
 
-  	});	
+  	// });	
 
 }
+
+module.exports = moonphase

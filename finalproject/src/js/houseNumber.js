@@ -1,14 +1,16 @@
+const SolarSystemAndEarthquakes = require('../data/SolarSystemAndEarthquakes.csv');
+
+
 function houseNumber() {
 	 // clean li data and object
     var article_menu = document.getElementById('article_menu');
     article_menu.innerHTML = "";
 
     //data
-    d3.csv("../data/SolarSystemAndEarthquakes.csv", (data) => {
+    // d3.csv(SolarSystemAndEarthquakes, (data) => {
     	//console.log(data[0]);
 
-      var final_Width = Math.min(document.getElementById('screen').offsetWidth
-      ,(document.getElementById('screen').offsetHeight)*2);
+      var final_Width = 1490;
 
   		var statistics_svg_width = final_Width, 
   				statistics_svg_height = (final_Width/2);
@@ -131,7 +133,7 @@ function houseNumber() {
       
       console.log(housenumber);
 
-      data.forEach((item) => {
+      SolarSystemAndEarthquakes.forEach((item) => {
       	var year = parseInt(item.date.substring(6,10));
       	var sun = Math.floor(item.Sun_housenumber);
       	var moon = Math.floor(item.Moon_housenumber);
@@ -361,5 +363,8 @@ function houseNumber() {
 
       generateChart(0);
 
-  });
+  // });
 }
+
+
+module.exports = houseNumber

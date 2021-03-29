@@ -1,3 +1,6 @@
+const worldMap = require('../data/world-110m.json');
+const SolarSystemAndEarthquakesData = require('../data/SolarSystemAndEarthquakes.csv');
+
 function setMap() {
 
 		// clean li data and object
@@ -7,20 +10,17 @@ function setMap() {
 
 		var base_Width = 960;
 
-		var final_Width = Math.min(document.getElementById('screen').offsetWidth
-			,(document.getElementById('screen').offsetHeight)*2);
+		// var final_Width = Math.min(document.getElementById('screen').offsetWidth
+		// 	,(document.getElementById('screen').offsetHeight)*2);	
 
-		var width = final_Width,
+		var width = 1490,
 				height = width/2;
-				
+
 		var svg = d3.select('#screen').append('svg')
-							.attr({
-								width: width,
-								height: height
-							}).style({
-								"border": "2px solid #fff",
-    						"background-color": "#a4bac7"
-							});
+							.attr('width', width)
+							.attr('height', height)
+							.style('border', "2px solid #fff")
+							.style("background-color", "#a4bac7");
 
 		//draw map
 
@@ -69,9 +69,9 @@ function setMap() {
 		var graticule = d3.geo.graticule();
 
 		// load and display the World
-		d3.json("../data/world-110m.json", (error, topology) => {
-			if(error)  throw error;
-			//console.log(topology);
+		// d3.json(worldMap, (error, topology) => {
+		// 	if(error)  throw error;
+		// 	console.log(topology);
 			//topojson
 			//console.log(topology.objects["countries"])
 
@@ -80,7 +80,7 @@ function setMap() {
       	.attr("class", "land")
     		.selectAll("path")
     		//Returns the GeoJSON Feature or FeatureCollection for the specified object in the given topology
-      	.data([topojson.object(topology, topology.objects.land)])
+      	.data([topojson.object(worldMap, worldMap.objects.land)])
     		.enter().append("path")
       	.attr("d", path);
       	
@@ -88,7 +88,7 @@ function setMap() {
   		svg.append("g")
   			.attr("class", "land-borders")
   			.selectAll("boundary")
-      	.data([topojson.object(topology, topology.objects.countries)])
+      	.data([topojson.object(worldMap, worldMap.objects.countries)])
       	
       	//topojson.mesh(topology,object,function(a,b) {return a !== b})
 				//return a GEOJson MultiLineString geometry object 
@@ -103,12 +103,12 @@ function setMap() {
 				.enter().append("path")
 				.attr("d", path);
 
-		});
+		// });
 
     d3.select(self.frameElement).style("height", height + "px");
 
     //data
-    d3.csv("../data/SolarSystemAndEarthquakes.csv", (data) => {
+    // d3.csv(SolarSystemAndEarthquakesData, (data) => {
     	//console.log(data[0]);
 
   		// divide data by year
@@ -121,7 +121,7 @@ function setMap() {
   				"data": []
   			});
   		}
-  		data.forEach(item => {
+  		SolarSystemAndEarthquakesData.forEach(item => {
 
   			var year = parseInt(item.date.substring(6,10));
 
@@ -243,6 +243,8 @@ function setMap() {
 
   		}
 
-  	});
+  	// });
 
  }
+
+ module.exports = setMap;
